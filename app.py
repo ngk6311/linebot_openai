@@ -8,8 +8,6 @@ from linebot.exceptions import (
 from linebot.models import *
 from datetime import datetime
 import os
-from linebot.models import FlexSendMessage
-
 
 app = Flask(__name__)
 static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
@@ -18,7 +16,7 @@ static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
 line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 # Channel Secret
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
-    
+
 def calculate_bazi(year, month, day, hour=0):
     Heavenly_Stems = '甲乙丙丁戊己庚辛壬癸'
     Earthly_Branches = '子丑寅卯辰巳午未申酉戌亥'
@@ -53,28 +51,17 @@ def handle_message(event):
         reply_msg = "請輸入您的出生年月日 (格式: YYYY-MM-DD)，若知道出生時間也可加入 (格式: YYYY-MM-DD HH)。"
     else:
         try:
-            # ... (略過原本的程式碼)
-            
-            # 建立表格格式的彈性訊息
-            bazi_info = calculate_bazi(dt.year, dt.month, dt.day, dt.hour)
-            reply_msg = FlexSendMessage(
-                alt_text="八字資訊",
-                contents={
-                    "type": "bubble",
-                    "body": {
-                        "type": "box",
-                        "layout": "vertical",
-                        "contents": [
-                            {"type": "text", "text": "八字資訊", "weight": "bold", "size": "xl"},
-                            {"type": "text", "text": bazi_info, "margin": "lg", "wrap": True}
-                        ]
-                    }
-                }
-            )
+            # Check if the hour is included
+            if len(msg.split()) == 2:
+                dt = datetime.strptime(msg, '%Y-%m-%d %H')
+                reply_msg = calculate_bazi(dt.year, dt.month, dt.day, dt.hour)
+            else:
+                dt = datetime.strptime(msg, '%Y-%m-%d')
+                reply_msg = calculate_bazi(dt.year, dt.month, dt.day)
         except:
             reply_msg = "日期格式不正確。請重新輸入您的出生年月日 (格式: YYYY-MM-DD)，若知道出生時間也可加入 (格式: YYYY-MM-DD HH)。"
 
-    line_bot_api.reply_message(event.reply_token, reply_msg)
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
