@@ -1,5 +1,4 @@
 from flask import Flask, request, abort
-
 from linebot import (
     LineBotApi, WebhookHandler
 )
@@ -7,12 +6,8 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import *
-
-#======python的函數庫==========
-import tempfile, os
-import datetime
-import time
-#======python的函數庫==========
+from datetime import datetime
+import os
 
 app = Flask(__name__)
 static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
@@ -22,7 +17,21 @@ line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 # Channel Secret
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 
-# 監聽所有來自 /callback 的 Post Request
+def calculate_bazi(year, month, day, hour=0):
+    Heavenly_Stems = '甲乙丙丁戊己庚辛壬癸'
+    Earthly_Branches = '子丑寅卯辰巳午未申酉戌亥'
+    
+    year_stem = Heavenly_Stems[(year - 4) % 10]
+    year_branch = Earthly_Branches[(year - 4) % 12]
+    month_stem = Heavenly_Stems[(year * 12 + month - 3) % 10]
+    month_branch = Earthly_Branches[month % 12]
+    day_stem = Heavenly_Stems[(year * month * day) % 10]
+    day_branch = Earthly_Branches[day % 12]
+    hour_stem = Heavenly_Stems[(year * month * day + hour) % 10]
+    hour_branch = Earthly_Branches[hour % 12]
+
+    return f"{year_stem}{year_branch}年 {month_stem}{month_branch}月 {day_stem}{day_branch}日 {hour_stem}{hour_branch}時"
+
 @app.route("/callback", methods=['POST'])
 def callback():
     signature = request.headers['X-Line-Signature']
@@ -38,20 +47,21 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     msg = event.message.text
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
+    if "出生" in msg:
+        reply_msg = "請輸入您的出生年月日 (格式: YYYY-MM-DD)，若知道出生時間也可加入 (格式: YYYY-MM-DD HH)。"
+    else:
+        try:
+            # Check if the hour is included
+            if len(msg.split()) == 2:
+                dt = datetime.strptime(msg, '%Y-%m-%d %H')
+                reply_msg = calculate_bazi(dt.year, dt.month, dt.day, dt.hour)
+            else:
+                dt = datetime.strptime(msg, '%Y-%m-%d')
+                reply_msg = calculate_bazi(dt.year, dt.month, dt.day)
+        except:
+            reply_msg = "日期格式不正確。請重新輸入您的出生年月日 (格式: YYYY-MM-DD)，若知道出生時間也可加入 (格式: YYYY-MM-DD HH)。"
 
-@handler.add(PostbackEvent)
-def handle_message(event):
-    print(event.postback.data)
-
-@handler.add(MemberJoinedEvent)
-def welcome(event):
-    uid = event.joined.members[0].user_id
-    gid = event.source.group_id
-    profile = line_bot_api.get_group_member_profile(gid, uid)
-    name = profile.display_name
-    message = TextSendMessage(text=f'{name}歡迎加入')
-    line_bot_api.reply_message(event.reply_token, message)
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
