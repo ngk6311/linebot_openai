@@ -9,6 +9,12 @@ from linebot.models import *
 from datetime import datetime
 import os
 
+from lunar_python import Lunar, EightChar
+from datetime import datetime
+from lunar_python.util import LunarUtil
+from prettytable import PrettyTable
+
+
 app = Flask(__name__)
 static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
 
@@ -18,19 +24,101 @@ line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 
 def calculate_bazi(year, month, day, hour=0):
-    Heavenly_Stems = '甲乙丙丁戊己庚辛壬癸'
-    Earthly_Branches = '子丑寅卯辰巳午未申酉戌亥'
-    
-    year_stem = Heavenly_Stems[(year - 4) % 10]
-    year_branch = Earthly_Branches[(year - 4) % 12]
-    month_stem = Heavenly_Stems[(year * 12 + month - 3) % 10]
-    month_branch = Earthly_Branches[month % 12]
-    day_stem = Heavenly_Stems[(year * month * day) % 10]
-    day_branch = Earthly_Branches[day % 12]
-    hour_stem = Heavenly_Stems[(year * month * day + hour) % 10]
-    hour_branch = Earthly_Branches[hour % 12]
+    #  datetime 对象
+    date_obj = datetime.strptime(date_str, '%Y-%m-%d %H')
+    lunar = Lunar.fromDate(date_obj)
 
-    return f"{year_stem}{year_branch}年 {month_stem}{month_branch}月 {day_stem}{day_branch}日 {hour_stem}{hour_branch}時"
+    # 使用者輸入的流派
+    # sect = inst(input("請輸入流派（1代表流派1，2代表流派2）："))
+    sect='2'
+    # 設置流派
+    eight_char = EightChar.fromLunar(lunar)
+    eight_char.setSect(sect)
+
+    # 新的流派
+    new_sect = eight_char.getSect()
+    # print("新的流派:", new_sect)
+
+    # 八字訊息
+    eight_char_info = lunar.getEightChar()
+    print(f"八字：{eight_char_info}")
+
+    #
+    # 获取年支十神
+    year_shi_shen_zhi = eight_char.getYearShiShenZhi()
+    print(f'年支十神 = {year_shi_shen_zhi}')
+
+    # 获取月支十神
+    month_shi_shen_zhi = eight_char.getMonthShiShenZhi()
+    print(f'月支十神 = {month_shi_shen_zhi}')
+
+    # 获取日支十神
+    day_shi_shen_zhi = eight_char.getDayShiShenZhi()
+    print(f'日支十神 = {day_shi_shen_zhi}')
+
+    # 获取时支十神
+    time_shi_shen_zhi = eight_char.getTimeShiShenZhi()
+    print(f'时支十神 = {time_shi_shen_zhi}')
+
+
+    # 获取年、月、日、时的天干十神
+    year_shi_shen_gan = eight_char.getYearShiShenGan()
+    month_shi_shen_gan = eight_char.getMonthShiShenGan()
+    day_shi_shen_gan = eight_char.getDayShiShenGan()
+    time_shi_shen_gan = eight_char.getTimeShiShenGan()
+
+    # 打印结果
+    print(f'年的天干十神为：{year_shi_shen_gan}')
+    print(f'月的天干十神为：{month_shi_shen_gan}')
+    print(f'日的天干十神为：{day_shi_shen_gan}')
+    print(f'时的天干十神为：{time_shi_shen_gan}')
+
+    result=dayouten('辛','丁')
+    print(result)
+
+    #大運
+    # 获取男运
+    gender = 1
+    yun = eight_char.getYun(gender)
+
+    # 起运
+    start_year = yun.getStartYear()
+    start_month = yun.getStartMonth()
+    start_day = yun.getStartDay()
+    print(f'出生{start_year}年{start_month}个月{start_day}天后起运')
+
+    daydan=eight_char.getDayGan()
+    # print(daydan)
+
+    # 获取大运表
+    daYunArr = yun.getDaYun()
+    for i, daYun in enumerate(daYunArr):
+        start_year = daYun.getStartYear()
+        start_age = daYun.getStartAge()
+        gan_zhi = daYun.getGanZhi()
+
+        if i<1:
+            
+            print(f'大运[{i}] = {start_year}年 {start_age}岁 {gan_zhi} ')
+        else:
+            first_char = gan_zhi[0]
+            minded=dayouten(daydan,first_char)
+            print(f'大运[{i}] = {start_year}年 {start_age}岁 {gan_zhi}  {minded} ')
+
+
+    str_eight_char_info=str(eight_char_info)
+    print(str_eight_char_info[3:5])
+    table = PrettyTable(["46-120", "31-45","16-30", "1-15"])
+    table.add_row(["時", "日","月", "年"])
+    table.add_row([time_shi_shen_gan, day_shi_shen_gan,month_shi_shen_gan, year_shi_shen_gan])
+
+    table.add_row([str_eight_char_info[9:10], str_eight_char_info[6:7],str_eight_char_info[3:4],str_eight_char_info[0:1]])
+    table.add_row([str_eight_char_info[10:11], str_eight_char_info[7:8],str_eight_char_info[4:5],str_eight_char_info[1:2]])
+    table.add_row([time_shi_shen_zhi, day_shi_shen_zhi,month_shi_shen_zhi, year_shi_shen_zhi])
+    print(table)
+    return table
+
+    # return f"{year_stem}{year_branch}年 {month_stem}{month_branch}月 {day_stem}{day_branch}日 {hour_stem}{hour_branch}時"
 
 @app.route("/callback", methods=['POST'])
 def callback():
