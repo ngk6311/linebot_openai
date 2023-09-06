@@ -107,7 +107,7 @@ def calculate_bazi(year, month, day, hour=0):
             print(f'大运[{i}] = {start_year}年 {start_age}岁 {gan_zhi}  {minded} ')
 
 
-    # str_eight_char_info=str(eight_char_info)
+    str_eight_char_info=str(eight_char_info)
     # print(str_eight_char_info[3:5])
     # table = PrettyTable(["46-120", "31-45","16-30", "1-15"])
     # table.add_row(["時", "日","月", "年"])
