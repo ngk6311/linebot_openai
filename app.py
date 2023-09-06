@@ -23,7 +23,7 @@ line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 # Channel Secret
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 
-def calculate_bazi(year, month, day, hour=0):
+def calculate_bazi(year, month, day, hour):
     #  datetime 对象
     # date_obj = datetime.strptime(date_str, '%Y-%m-%d %H')
     date_obj = datetime(year, month, day, hour)
