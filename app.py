@@ -25,7 +25,8 @@ handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 
 def calculate_bazi(year, month, day, hour=0):
     #  datetime 对象
-    date_obj = datetime.strptime(date_str, '%Y-%m-%d %H')
+    # date_obj = datetime.strptime(date_str, '%Y-%m-%d %H')
+    date_obj = datetime(year, month, day, hour)
     lunar = Lunar.fromDate(date_obj)
 
     # 使用者輸入的流派
