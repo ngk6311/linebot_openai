@@ -23,6 +23,11 @@ line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 # Channel Secret
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 
+def dayouten(daygen,gan):
+    # print(daygen,gan)
+    return LunarUtil.SHI_SHEN_GAN.get(daygen+ gan)
+
+
 def calculate_bazi(year, month, day, hour):
     #  datetime 对象
     # date_obj = datetime.strptime(date_str, '%Y-%m-%d %H')
@@ -108,16 +113,16 @@ def calculate_bazi(year, month, day, hour):
 
 
     str_eight_char_info=str(eight_char_info)
-    # print(str_eight_char_info[3:5])
-    # table = PrettyTable(["46-120", "31-45","16-30", "1-15"])
-    # table.add_row(["時", "日","月", "年"])
-    # table.add_row([time_shi_shen_gan, day_shi_shen_gan,month_shi_shen_gan, year_shi_shen_gan])
+    print(str_eight_char_info[3:5])
+    table = PrettyTable(["46-120", "31-45","16-30", "1-15"])
+    table.add_row(["時", "日","月", "年"])
+    table.add_row([time_shi_shen_gan, day_shi_shen_gan,month_shi_shen_gan, year_shi_shen_gan])
 
-    # table.add_row([str_eight_char_info[9:10], str_eight_char_info[6:7],str_eight_char_info[3:4],str_eight_char_info[0:1]])
-    # table.add_row([str_eight_char_info[10:11], str_eight_char_info[7:8],str_eight_char_info[4:5],str_eight_char_info[1:2]])
-    # table.add_row([time_shi_shen_zhi, day_shi_shen_zhi,month_shi_shen_zhi, year_shi_shen_zhi])
-    # print(table)
-    return str_eight_char_info
+    table.add_row([str_eight_char_info[9:10], str_eight_char_info[6:7],str_eight_char_info[3:4],str_eight_char_info[0:1]])
+    table.add_row([str_eight_char_info[10:11], str_eight_char_info[7:8],str_eight_char_info[4:5],str_eight_char_info[1:2]])
+    table.add_row([time_shi_shen_zhi, day_shi_shen_zhi,month_shi_shen_zhi, year_shi_shen_zhi])
+    print(table)
+    return table
 
     # return f"{year_stem}{year_branch}年 {month_stem}{month_branch}月 {day_stem}{day_branch}日 {hour_stem}{hour_branch}時"
 
