@@ -139,6 +139,8 @@ def handle_message(event):
     if "出生" in msg:
         reply_msg = "請輸入您的出生年月日 (格式: YYYY-MM-DD)，若知道出生時間也可加入 (格式: YYYY-MM-DD HH)。"
     else:
+        print(msg)
+        print(type(msg))
         try:
             # Check if the hour is included
             if len(msg.split()) == 2:
