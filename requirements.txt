@@ -2,3 +2,6 @@ line-bot-sdk
 flask
 openai
 gunicorn
+prettytable
+lunar_python
+datetime
